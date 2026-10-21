@@ -1,4 +1,10 @@
 
+"use strict";
+
+/* =========================================
+   STUDENT MANAGEMENT
+========================================= */
+
 const form = document.getElementById("studentForm");
 const studentIdInput = document.getElementById("studentId");
 const nameInput = document.getElementById("name");
@@ -12,25 +18,41 @@ const message = document.getElementById("message");
 
 const STORAGE_KEY = "studentRecords";
 
-let students = JSON.parse(
-    localStorage.getItem(STORAGE_KEY) || "[]"
-);
+let students = [];
 
-// Save data
-function saveStudents() {
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(students)
+try {
+    const savedStudents = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
     );
+
+    students = Array.isArray(savedStudents) ? savedStudents : [];
+} catch (error) {
+    console.error("Could not load saved students:", error);
+    students = [];
 }
 
-// Display data
+// Save student data
+function saveStudents() {
+    try {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(students)
+        );
+    } catch (error) {
+        console.error("Could not save students:", error);
+        message.textContent = "Could not save student data.";
+    }
+}
+
+// Display student data
 function displayStudents(keyword = "") {
     studentList.replaceChildren();
 
+    const searchTerm = keyword.toLowerCase();
+
     const filtered = students.filter(student =>
-        student.name.toLowerCase().includes(keyword.toLowerCase()) ||
-        student.major.toLowerCase().includes(keyword.toLowerCase())
+        String(student.name || "").toLowerCase().includes(searchTerm) ||
+        String(student.major || "").toLowerCase().includes(searchTerm)
     );
 
     filtered.forEach(student => {
@@ -38,7 +60,7 @@ function displayStudents(keyword = "") {
 
         function addCell(value) {
             const td = document.createElement("td");
-            td.textContent = value;
+            td.textContent = String(value ?? "");
             tr.appendChild(td);
         }
 
@@ -49,16 +71,25 @@ function displayStudents(keyword = "") {
 
         const actions = document.createElement("td");
         const actionGroup = document.createElement("div");
+
         actionGroup.className = "actions";
 
         const editBtn = document.createElement("button");
+        editBtn.type = "button";
         editBtn.textContent = "Edit";
-        editBtn.addEventListener("click", () => editStudent(student.id));
+
+        editBtn.addEventListener("click", () => {
+            editStudent(student.id);
+        });
 
         const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
         deleteBtn.textContent = "Delete";
         deleteBtn.className = "delete-btn";
-        deleteBtn.addEventListener("click", () => deleteStudent(student.id));
+
+        deleteBtn.addEventListener("click", () => {
+            deleteStudent(student.id);
+        });
 
         actionGroup.append(editBtn, deleteBtn);
         actions.appendChild(actionGroup);
@@ -80,8 +111,15 @@ form.addEventListener("submit", event => {
     const major = majorInput.value.trim();
     const id = studentIdInput.value;
 
-    if (!name || !major || !Number.isInteger(age) || age < 1 || age > 120) {
-        message.textContent = "Please enter valid student information.";
+    if (
+        !name ||
+        !major ||
+        !Number.isInteger(age) ||
+        age < 1 ||
+        age > 120
+    ) {
+        message.textContent =
+            "Please enter valid student information.";
         return;
     }
 
@@ -100,7 +138,8 @@ form.addEventListener("submit", event => {
         message.textContent = "Student updated successfully!";
     } else {
         students.push({
-            id: String(Date.now()) + Math.random().toString(36).slice(2, 7),
+            id: String(Date.now()) +
+                Math.random().toString(36).slice(2, 7),
             name,
             age,
             major
@@ -110,9 +149,11 @@ form.addEventListener("submit", event => {
     }
 
     saveStudents();
+
     form.reset();
     studentIdInput.value = "";
     submitBtn.textContent = "Add Student";
+
     displayStudents(searchInput.value);
 });
 
@@ -120,7 +161,9 @@ form.addEventListener("submit", event => {
 function editStudent(id) {
     const student = students.find(item => item.id === id);
 
-    if (!student) return;
+    if (!student) {
+        return;
+    }
 
     studentIdInput.value = student.id;
     nameInput.value = student.name;
@@ -128,7 +171,10 @@ function editStudent(id) {
     majorInput.value = student.major;
 
     submitBtn.textContent = "Update Student";
-    message.textContent = "Edit the information, then click Update Student.";
+
+    message.textContent =
+        "Edit the information, then click Update Student.";
+
     nameInput.focus();
 }
 
@@ -136,14 +182,19 @@ function editStudent(id) {
 function deleteStudent(id) {
     const student = students.find(item => item.id === id);
 
-    if (!student) return;
+    if (!student) {
+        return;
+    }
 
-    if (!confirm(`Delete student "${student.name}"?`)) return;
+    if (!confirm(`Delete student "${student.name}"?`)) {
+        return;
+    }
 
     students = students.filter(item => item.id !== id);
 
     saveStudents();
     displayStudents(searchInput.value);
+
     message.textContent = "Student deleted successfully!";
 }
 
@@ -152,58 +203,95 @@ searchInput.addEventListener("input", () => {
     displayStudents(searchInput.value);
 });
 
-// Load saved data when opening the page
+// Load saved students
 displayStudents();
+
+
+/* =========================================
+   CONTACT FORM → TELEGRAM
+========================================= */
 
 const contactForm = document.getElementById("contactForm");
 
 if (contactForm) {
-  contactForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
+    contactForm.addEventListener("submit", async event => {
+        event.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const message = document.getElementById("message").value.trim();
-    const status = document.getElementById("formStatus");
-    const sendBtn = document.getElementById("sendBtn");
+        const contactName = document.getElementById("contactName");
+        const contactMessage = document.getElementById("contactMessage");
+        const formStatus = document.getElementById("formStatus");
+        const sendBtn = document.getElementById("sendBtn");
 
-    if (!name || !message) {
-      status.textContent = "Please enter your name and message.";
-      return;
-    }
-
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Sending...";
-    status.textContent = "";
-
-    try {
-      const response = await fetch(
-        "https://student-telegram-api.horm20766.workers.dev",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ name, message })
+        if (!contactName || !contactMessage || !formStatus || !sendBtn) {
+            console.error("Contact form elements are missing.");
+            return;
         }
-      );
 
-      const result = await response.json();
+        const name = contactName.value.trim();
+        const messageText = contactMessage.value.trim();
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Unable to send message.");
-      }
+        if (!name || !messageText) {
+            formStatus.textContent =
+                "Please enter your name and message.";
+            return;
+        }
 
-      status.textContent = "Message sent successfully!";
-      contactForm.reset();
+        if (name.length > 100 || messageText.length > 2000) {
+            formStatus.textContent =
+                "Name or message is too long.";
+            return;
+        }
 
-    } catch (error) {
-      console.error("Contact form error:", error);
-      status.textContent =
-        "Could not send your message. Please try again.";
-    } finally {
-      sendBtn.disabled = false;
-      sendBtn.textContent = "Send Message";
-    }
-  });
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Sending...";
+        formStatus.textContent = "Sending your message...";
+
+        try {
+            const response = await fetch(
+                "https://student-telegram-api.horm20766.workers.dev",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        message: messageText
+                    })
+                }
+            );
+
+            let result;
+
+            try {
+                result = await response.json();
+            } catch {
+                throw new Error(
+                    `Server returned an invalid response (${response.status}).`
+                );
+            }
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message ||
+                    `Request failed (${response.status}).`
+                );
+            }
+
+            formStatus.textContent =
+                "Message sent successfully!";
+
+            contactForm.reset();
+
+        } catch (error) {
+            console.error("Contact form error:", error);
+
+            formStatus.textContent =
+                "Failed to send message. Please check your connection and try again.";
+
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send Message";
+        }
+    });
 }
-

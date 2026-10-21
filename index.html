@@ -4,36 +4,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Student Management</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div class="container">
+
+        <!-- Student Management -->
         <h1>Student Management</h1>
         <p>Manage your student information</p>
 
         <form id="studentForm">
             <input type="hidden" id="studentId">
 
-            <input type="text" id="name"
-                   placeholder="Student Name" required>
+            <input
+                type="text"
+                id="name"
+                placeholder="Student Name"
+                required
+            >
 
-            <input type="number" id="age"
-                   placeholder="Age" min="1" max="120" required>
+            <input
+                type="number"
+                id="age"
+                placeholder="Age"
+                min="1"
+                max="120"
+                required
+            >
 
-            <input type="text" id="major"
-                   placeholder="Major" required>
+            <input
+                type="text"
+                id="major"
+                placeholder="Major"
+                required
+            >
 
             <button type="submit" id="submitBtn">
                 Add Student
             </button>
         </form>
 
-        <input type="search" id="search"
-               placeholder="Search students...">
+        <!-- Search Students -->
+        <input
+            type="search"
+            id="search"
+            placeholder="Search students..."
+        >
 
         <p id="count">Total Students: 0</p>
 
+        <!-- Student Table -->
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -45,46 +69,79 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
+
                 <tbody id="studentList"></tbody>
             </table>
         </div>
 
         <p id="message" role="status"></p>
+
+        <!-- Divider -->
+        <hr>
+
+        <!-- Contact Form: Send message to Telegram -->
+        <section id="contact">
+            <h2>Contact Me</h2>
+
+            <p>
+                Have a question? Send me a message.
+            </p>
+
+            <form id="contactForm">
+
+                <div class="form-group">
+                    <label for="contactName">
+                        Your Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="contactName"
+                        name="name"
+                        placeholder="Enter your name"
+                        maxlength="100"
+                        autocomplete="name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="contactMessage">
+                        Your Message
+                    </label>
+
+                    <textarea
+                        id="contactMessage"
+                        name="message"
+                        placeholder="Write your message..."
+                        maxlength="2000"
+                        rows="5"
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" id="sendBtn">
+                    Send Message
+                </button>
+
+                <p
+                    id="formStatus"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+
+            </form>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2026 Student Management</p>
+        </footer>
+
     </div>
 
+    <!-- JavaScript -->
     <script src="script.js"></script>
+
 </body>
 </html>
-
-<section id="contact">
-  <h2>Contact Me</h2>
-  <p>Send me a message through my website.</p>
-
-  <form id="contactForm">
-    <div>
-      <label for="name">Your Name</label>
-      <input
-        type="text"
-        id="name"
-        name="name"
-        placeholder="Enter your name"
-        maxlength="100"
-        required
-      />
-    </div>
-
-    <div>
-      <label for="message">Your Message</label>
-      <textarea
-        id="message"
-        name="message"
-        placeholder="Write your message..."
-        maxlength="2000"
-        required
-      ></textarea>
-    </div>
-
-    <button type="submit" id="sendBtn">Send Message</button>
-    <p id="formStatus" role="status" aria-live="polite"></p>
-  </form>
-</section>
